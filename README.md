@@ -1,7 +1,7 @@
 poodle_protector
 ================
 
-``poodle_protector.py`` is a Python script for automatically protecting your systems against POODLE vulnerability (CVE-2014-3566).
+``poodle_protector.py`` is a Python script for automatically protecting your systems against POODLE vulnerability ([*CVE-2014-3566*](http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2014-3566)).
 It scans your Apache server configuration directories for unsecure configuration directives and ensures security by disabling SSL 2.0 and 3.0. It can also restart your server instantly after customizing the configuration.
 
 This only works for Linux web servers using Apache.
