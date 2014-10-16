@@ -51,7 +51,7 @@ if __name__ == "__main__":
 		if len(options.customPath) > 0:
 			default_paths=[options.customPath]
 	except:
-		default_paths=["/etc/httpd/conf.d","/etc/apache2/mods-available"]
+		default_paths=["/etc/httpd/conf.d","/etc/apache2/mods-available","/etc/apache2/vhosts.d"]
 	
 	#string replacement
 	try:
