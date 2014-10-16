@@ -40,7 +40,7 @@ Options:
 
 Examples
 ========
-Just do a dry-run to see what the script would do
+Just do a dry-run to see what the script would do:
 ```
 # ./poodle_protector.py -l
 I'd like to create a backup of '/etc/apache2/mods-available/ssl.conf as '/etc/apache2/mods-available/ssl.conf.20141016-1303' ...
