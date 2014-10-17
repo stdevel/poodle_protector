@@ -53,7 +53,7 @@ if __name__ == "__main__":
         parser.add_option("-l", "--dry-run", dest="listOnly", default=False, action="store_true", help="only simulates what would be done")
 	
 	#-r / ---service-reload
-	parser.add_option("-r", "--service-reload", dest="serviceReload", default=False, action="store_true", help="reloads the affected service using the 'service' wrapper")
+	parser.add_option("-r", "--service-reload", dest="serviceReload", default=False, action="store_true", help="reloads the affected service using the appropriate wrapper")
 
         #parse arguments
         (options, args) = parser.parse_args()
