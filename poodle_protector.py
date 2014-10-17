@@ -95,7 +95,7 @@ if __name__ == "__main__":
 		if options.debug: print "DEBUG: custom string invalid or non-existent - choosing default (SSLProtocol All -SSLv2 -SSLv3)"
 		strReplace = "SSLProtocol All -SSLv2 -SSLv3"
 	
-	#service restart commands
+	#service reload commands
 	if distro in ['redhat','centos']:
 		#RH(EL)-like distro
 		serviceCmds=["service httpd reload"]
@@ -124,8 +124,8 @@ if __name__ == "__main__":
 			if options.listOnly:
 				#dry-run
 				if options.noBackup == False: print "I'd like to create a backup of '" + hit + " as '" + str(hit + "." + time.strftime("%Y%m%d-%H%M")) + "' ..."
-				print "I'd like to insert 'SSLProtocol All -SSLv2 -SSLv3' into " + hit + " using the following command: sed -i '/SSLProtocol/ c\\" + strReplace + "' " + hit + " ..."
-				if options.serviceReload: print "I'd also like to restart the service using: " + str(serviceCmds).replace("[","").replace("]","")
+				print "I'd like to insert '" + strReplace + "' into " + hit + " using the following command: sed -i '/SSLProtocol/ c\\" + strReplace + "' " + hit + " ..."
+				if options.serviceReload: print "I'd also like to reload the service using: " + str(serviceCmds).replace("[","").replace("]","")
 			else:
 				#backup and customize configuration
 				if os.access(os.path.dirname(hit), os.W_OK):
@@ -142,10 +142,10 @@ if __name__ == "__main__":
 							print "ERROR: unable to customize file '" + hit + "' ..."
 					else:
 						print "ERROR: unable to copy '" + hit + "' to '" + hit + "." + time.strftime("%Y%m%d-%H%M")
-					#restart service if requested
-					if options.serviceReload:
-						for command in serviceCmds: os.system(command)
 				else:
 					#no write permissions so we're dying in a fire
 					print "No write permissions to '" + os.path.dirname(hit) + "'"
 					exit(1)
+		#reload service if requested
+		if options.serviceReload and options.listOnly == False:
+			for command in serviceCmds: os.system(command)
