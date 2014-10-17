@@ -52,8 +52,8 @@ if __name__ == "__main__":
         #-l / --dry-run
         parser.add_option("-l", "--dry-run", dest="listOnly", default=False, action="store_true", help="only simulates what would be done")
 	
-	#-r / ---service-reload
-	parser.add_option("-r", "--service-reload", dest="serviceReload", default=False, action="store_true", help="reloads the affected service using the appropriate wrapper")
+	#-r / ---service-restart
+	parser.add_option("-r", "--service-retart", dest="serviceRestart", default=False, action="store_true", help="restarts the affected service using the appropriate wrapper")
 
         #parse arguments
         (options, args) = parser.parse_args()
@@ -95,22 +95,22 @@ if __name__ == "__main__":
 		if options.debug: print "DEBUG: custom string invalid or non-existent - choosing default (SSLProtocol All -SSLv2 -SSLv3)"
 		strReplace = "SSLProtocol All -SSLv2 -SSLv3"
 	
-	#service reload commands
+	#service restart commands
 	if distro in ['redhat','centos']:
 		#RH(EL)-like distro
-		serviceCmds=["service httpd reload"]
+		serviceCmds=["service httpd restart"]
 	elif distro in ['fedora']:
 		#Fedora
-		serviceCmds=["systemctl reload httpd.service","service reload httpd"]
+		serviceCmds=["systemctl restart httpd.service","service restart httpd"]
 	elif distro in ['debian','ubuntu']:
 		#Debian-like distro
-		serviceCmds=["service apache2 reload"]
+		serviceCmds=["service apache2 restart"]
 	elif distro in ['suse','sles']:
 		#SUSE-like distro
-		serviceCmds=["service apache2 reload"]
+		serviceCmds=["service apache2 restart"]
 	else:
 		#don't know, try various service/systemd stuff
-		serviceCmds=["service httpd reload","service apache2 reload","systemctl reload httpd.service","systemctl reload apache2.service"]
+		serviceCmds=["service httpd restart","service apache2 restart","systemctl restart httpd.service","systemctl restart apache2.service"]
 	
 	#check _all_ the paths for vulnerable files
 	for path in default_paths:
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 				#dry-run
 				if options.noBackup == False: print "I'd like to create a backup of '" + hit + " as '" + str(hit + "." + time.strftime("%Y%m%d-%H%M")) + "' ..."
 				print "I'd like to insert '" + strReplace + "' into " + hit + " using the following command: sed -i '/SSLProtocol/ c\\" + strReplace + "' " + hit + " ..."
-				if options.serviceReload: print "I'd also like to reload the service using: " + str(serviceCmds).replace("[","").replace("]","")
+				if options.serviceRestart: print "I'd also like to restart the service using: " + str(serviceCmds).replace("[","").replace("]","")
 			else:
 				#backup and customize configuration
 				if os.access(os.path.dirname(hit), os.W_OK):
@@ -146,6 +146,6 @@ if __name__ == "__main__":
 					#no write permissions so we're dying in a fire
 					print "No write permissions to '" + os.path.dirname(hit) + "'"
 					exit(1)
-		#reload service if requested
-		if options.serviceReload and options.listOnly == False:
+		#restart service if requested
+		if options.serviceRestart and options.listOnly == False:
 			for command in serviceCmds: os.system(command)
