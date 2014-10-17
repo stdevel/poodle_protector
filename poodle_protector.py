@@ -11,6 +11,7 @@
 from optparse import OptionParser
 import os
 import time
+from collections import namedtuple
 
 def get_distro():
 	#try to guess Linux distribution
@@ -29,12 +30,14 @@ def get_distro():
 
 if __name__ == "__main__":
         #define description, version and load parser
-        desc='''%prog is used to protect your servers against POODLE vulnerability (CVE-2014-3566). It automatically detects apache configuration files vulnerable to POODLE and customizes them after creating backups.
-	Checkout the GitHub page for updates: https://github.com/stdevel/poodle_protector'''
-	parser = OptionParser(description=desc,version="%prog version 0.2")
-	
+        desc='''%prog is used to protect your servers against POODLE vulnerability (CVE-2014-3566). It automatically detects configuration files vulnerable to POODLE and customizes them after creating backups. Currently supported daemons: Apache, Tomcat, vsftpd, Dovecot, Postfix, openLDAP, CUPS.
+
+                Checkout the GitHub page for updates: https://github.com/stdevel/poodle_protector'''
+        parser = OptionParser(description=desc,version="%prog version 0.3")
+
         #-c / --custom-string
         parser.add_option("-c", "--custom-string", dest="customString", metavar="STRING", help="defines a custom SSLProtocol configuration string")
+	#TODO: currently broken, don't know why
 	
 	#-p / --custom-path
 	parser.add_option("-p", "--custom-path", dest="customPath", metavar="PATH", help="defines a custom path for apache configuration files in case you're not using distribution defaults")
@@ -52,13 +55,52 @@ if __name__ == "__main__":
         parser.add_option("-l", "--dry-run", dest="listOnly", default=False, action="store_true", help="only simulates what would be done")
 	
 	#-r / --service-restart
-	parser.add_option("-r", "--service-retart", dest="serviceRestart", default=False, action="store_true", help="restarts the affected service(s) using the appropriate wrapper")
+	parser.add_option("-r", "--service-retart", dest="serviceRestart", default=False, action="store_true", help="restarts the affected services using the appropriate wrapper")
+	
+	#-e / --exlude-services
+	parser.add_option("-e", "--exclude-services", dest="excludeServices", type="choice", action="append", metavar="SERVICES", choices=["apache","tomcat", "vsftpd", "postfix", "openldap", "cups"], help="exludes service from automatic analization and re-configuration. Possible values: apache, tomcat, vsftpd, postfix, openldap, cups")
 
         #parse arguments
         (options, args) = parser.parse_args()
 	
 	#debug
 	if options.debug: print "DEBUG: options: " + str(options) + "\nargs: " + str(args)
+	
+	#default configurations
+	daemonStruct = namedtuple("daemonStruct", "daemonName daemonStruct")
+	configStruct = namedtuple("configStruct", "distroName configurationFiles")
+	#
+	# - struct - daemonStruct
+	#   - string "daemonName"
+	#   - array - configStruct(s)
+	#     - string "distroName"
+	#     - array "configurationFiles"
+	#
+	
+	daemonConfigurations = [
+				daemonStruct(daemonName="apache", daemonStruct=[
+					configStruct("redhat", ["/etc/httpd/conf.d"]),
+					configStruct("centos", ["/etc/httpd/conf.d"]),
+					configStruct("fedora", ["/etc/httpd/conf.d"]),
+					configStruct("debian", ["/etc/apache2/mods-available","/etc/apache2/sites-available"]),
+					configStruct("ubuntu", ["/etc/apache2/mods-available","/etc/apache2/sites-available"]),
+					configStruct("suse", ["/etc/apache2/vhosts.d"]),
+					configStruct("sles", ["/etc/apache2/vhosts.d"])
+				])
+				]
+	
+	if options.debug:
+		#dump supported daemons and default file locations
+		for (daemonName, configStructs) in daemonConfigurations:
+			print "daemon:",daemonName
+			for struct in configStructs:
+				#print "struct:",struct
+				for entry in struct:
+					if isinstance(entry, str): print "distro:",entry
+					else:
+						for file in entry: print "file:",file
+	#STOP HERE - we're still doing struct tests
+	exit(0)
 	
 	#try to guess distribution
 	distro=get_distro()
@@ -114,7 +156,7 @@ if __name__ == "__main__":
 	#check _all_ the paths for vulnerable files
 	for path in default_paths:
 		if options.debug: print "DEBUG: checking path '" + str(path) + "'..."
-		command = "grep SSLProtocol " + path + " -R|grep -v 'All -SSLv2 -SSLv3'|grep -v 'All -SSLv3 -SSLv2'|cut -d: -f1|grep -v '*conf*.*'"
+		command = "grep SSLProtocol " + path + " -R|grep -v 'All -SSLv2 -SSLv3'|grep -v 'All -SSLv3 -SSLv2'|cut -d: -f1|grep -v 'conf*.'"
 		if options.debug: print "DEBUG: " + command
 		hits = os.popen(command).read().split("\n")
 		hits.remove("")
