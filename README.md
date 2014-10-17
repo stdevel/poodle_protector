@@ -36,7 +36,7 @@ Options:
   -d, --debug           enable debugging outputs
   -n, --no-backup       don't create backups if you like to like dangerously
   -l, --dry-run         only simulates what would be done
-  -r, --service-restart restarts the affected service using the appropriate
+  -r, --service-restart restarts the affected service(s) using the appropriate
                         wrapper
 ```
 
