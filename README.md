@@ -36,7 +36,7 @@ Options:
   -d, --debug           enable debugging outputs
   -n, --no-backup       don't create backups if you like to like dangerously
   -l, --dry-run         only simulates what would be done
-  -r, --service-reload  reloads the affected service using the 'service'
+  -r, --service-reload  reloads the affected service using the appropriate
                         wrapper
 ```
 
@@ -58,7 +58,7 @@ Ensure security by customizing the configuration and reload the service:
 Restarting web server: apache2 ... waiting .
 ```
 
-Simulate setting a special ``SSLProtocol`` value on a Enterprise Linux server
+Simulate setting a special ``SSLProtocol`` value (*only TLSv1.2 instead of everything except SSLv2/v3*) and reloading the daemon on a Enterprise Linux server:
 ```
 # ./poodle_protector.py -lrc "SSLProtocol TLSv1.2"
 I'd like to create a backup of '/etc/httpd/conf.d/ssl.conf as '/etc/httpd/conf.d/ssl.conf.20141017-1112' ...
