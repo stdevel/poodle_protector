@@ -12,11 +12,26 @@ from optparse import OptionParser
 import os
 import time
 
+def get_distro():
+	#try to guess Linux distribution
+	try:
+		result = os.popen("lsb_release -d|tr -d '[:space:]'|cut -d: -f 2").read().lower()
+		if "redhat" in result: return "redhat"
+		elif "centos" in result: return "centos"
+		elif "fedora" in result: return "fedora"
+		elif "debian" in result: return "debian"
+		elif "ubuntu" in result: return "ubuntu"
+		elif "opensuse" in result: return "suse"
+		elif "suse" in result: return "sles"
+		else: return "unknown"
+	except:
+		return "unknown"
+
 if __name__ == "__main__":
         #define description, version and load parser
         desc='''%prog is used to protect your servers against POODLE vulnerability (CVE-2014-3566). It automatically detects apache configuration files vulnerable to POODLE and customizes them after creating backups.
                 Checkout the GitHub page for updates: https://github.com/stdevel/poodle_protector'''
-        parser = OptionParser(description=desc,version="%prog version 0.1")
+        parser = OptionParser(description=desc,version="%prog version 0.2")
 
         #-c / --custom-string
         parser.add_option("-c", "--custom-string", dest="customString", metavar="STRING", help="defines a custom SSLProtocol configuration string")
@@ -46,26 +61,56 @@ if __name__ == "__main__":
 	#debug
 	if options.debug: print "DEBUG: options: " + str(options) + "\nargs: " + str(args)
 	
+	#try to guess distribution
+	distro=get_distro()
+	
 	#default paths to have a look at
 	try:
 		if len(options.customPath) > 0:
 			default_paths=[options.customPath]
 	except:
-		default_paths=["/etc/httpd/conf.d","/etc/apache2/mods-available","/etc/apache2/vhosts.d"]
+		if distro in ['redhat','centos','fedora']:
+			#RH(EL)-like distro
+			default_paths=["/etc/httpd/conf.d"]
+		elif distro in ['debian','ubuntu']:
+			#Debian-like distro
+			default_paths=["/etc/apache2/mods-available","/etc/apache2/sites-available"]
+		elif distro in ['suse','sles']:
+			#SUSE-like distro
+			default_paths=["/etc/apache2/vhosts.d"]
+		else:
+			#don't know
+			default_paths=["/etc/httpd/conf.d","/etc/apache2/mods-available","/etc/apache2/sites-available","/etc/apache2/vhosts.d"]
+	if options.debug: print "DEBUG: distro =",distro
 	
 	#string replacement
 	try:
-		if len(options.customString) > 0 and options.customString.contains("SSLProtocol"):
-			if options.debug: print "Valid custom string supplied: '" + options.customString + "'"
+		if len(options.customString) > 0 and "SSLProtocol" in options.customString:
+			if options.debug: print "DEBUG: valid custom string supplied: '" + options.customString + "'"
 			strReplace = options.customString
 		else:
 			print "ERROR: custom string '" + options.customString + "' invalid - choosing default (SSLProtocol All -SSLv2 -SSLv3)"
 			strReplace = "SSLProtocol All -SSLv2 -SSLv3"
 	except:
+		if options.debug: print "DEBUG: custom string invalid or non-existent - choosing default (SSLProtocol All -SSLv2 -SSLv3)"
 		strReplace = "SSLProtocol All -SSLv2 -SSLv3"
 	
 	#service restart commands
-	serviceCmds=["service httpd restart","service apache2 restart"]
+	if distro in ['redhat','centos']:
+		#RH(EL)-like distro
+		serviceCmds=["service httpd reload"]
+	elif distro in ['fedora']:
+		#Fedora
+		serviceCmds=["systemctl reload httpd.service","service reload httpd"]
+	elif distro in ['debian','ubuntu']:
+		#Debian-like distro
+		serviceCmds=["service apache2 reload"]
+	elif distro in ['suse','sles']:
+		#SUSE-like distro
+		serviceCmds=["service apache2 reload"]
+	else:
+		#don't know, try various service/systemd stuff
+		serviceCmds=["service httpd reload","service apache2 reload","systemctl reload httpd.service","systemctl reload apache2.service"]
 	
 	#check _all_ the paths for vulnerable files
 	for path in default_paths:
@@ -79,8 +124,8 @@ if __name__ == "__main__":
 			if options.listOnly:
 				#dry-run
 				if options.noBackup == False: print "I'd like to create a backup of '" + hit + " as '" + str(hit + "." + time.strftime("%Y%m%d-%H%M")) + "' ..."
-				print "I'd like to insert 'SSLProtocol All -SSLv3 -SSLv3' into " + hit + " using the following command: sed -i '/SSLProtocol/ c\\" + strReplace + "' " + hit + " ..."
-				if options.serviceReload: print "I'd also like to restart the service using: " + str(serviceCmds)
+				print "I'd like to insert 'SSLProtocol All -SSLv2 -SSLv3' into " + hit + " using the following command: sed -i '/SSLProtocol/ c\\" + strReplace + "' " + hit + " ..."
+				if options.serviceReload: print "I'd also like to restart the service using: " + str(serviceCmds).replace("[","").replace("]","")
 			else:
 				#backup and customize configuration
 				if os.access(os.path.dirname(hit), os.W_OK):
