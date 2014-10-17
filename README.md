@@ -4,7 +4,11 @@ poodle_protector
 ``poodle_protector.py`` is a Python script for automatically protecting your systems against POODLE vulnerability ([*CVE-2014-3566*](http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2014-3566)).
 It scans your Apache server configuration directories for unsecure configuration directives and ensures security by disabling SSL 2.0 and 3.0. It can also restart your server instantly after customizing the configuration.
 
-This only works for Linux web servers using Apache.
+This only works for Linux web servers running Apache. The following Linux distros are detected automatically:
+- CentOS / Red Hat Enterprise Linux
+- openSUSE / SUSE Linux Enterprise Server
+- Debian / Ubuntu
+- Fedora
 
 
 
@@ -45,12 +49,19 @@ Just do a dry-run to see what the script would do:
 # ./poodle_protector.py -l
 I'd like to create a backup of '/etc/apache2/mods-available/ssl.conf as '/etc/apache2/mods-available/ssl.conf.20141016-1303' ...
 I'd like to insert 'SSLProtocol All -SSLv3 -SSLv3' into /etc/apache2/mods-available/ssl.conf using the following command: sed -i '/SSLProtocol/ c\SSLProtocol All -SSLv2 -SSLv3' /etc/apache2/mods-available/ssl.conf ...
-I'd also like to restart the service using: ['service httpd restart', 'service apache2 restart']
+I'd also like to restart the service using: 'service apache2 restart'
 ```
 
-Ensure security by customizing the configuration and reload the service (*Debian machine, that's why the httpd directories and service can't be found*):
+Ensure security by customizing the configuration and reload the service:
 ```
 # ./poodle_protector.py -r
-httpd: unrecognized service
 Restarting web server: apache2 ... waiting .
+```
+
+Simulate setting a special ``SSLProtocol`` value on a Enterprise Linux server
+```
+# ./poodle_protector.py -lrc "SSLProtocol TLSv1.2"
+I'd like to create a backup of '/etc/httpd/conf.d/ssl.conf as '/etc/httpd/conf.d/ssl.conf.20141017-1112' ...
+I'd like to insert 'SSLProtocol TLSv1.2' into /etc/httpd/conf.d/ssl.conf using the following command: sed -i '/SSLProtocol/ c\SSLProtocol TLSv1.2' /etc/httpd/conf.d/ssl.conf ...
+I'd also like to restart the service using: 'service httpd reload'
 ```
