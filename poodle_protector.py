@@ -30,12 +30,11 @@ def get_distro():
 if __name__ == "__main__":
         #define description, version and load parser
         desc='''%prog is used to protect your servers against POODLE vulnerability (CVE-2014-3566). It automatically detects apache configuration files vulnerable to POODLE and customizes them after creating backups.
-                Checkout the GitHub page for updates: https://github.com/stdevel/poodle_protector'''
-        parser = OptionParser(description=desc,version="%prog version 0.2")
-
+	Checkout the GitHub page for updates: https://github.com/stdevel/poodle_protector'''
+	parser = OptionParser(description=desc,version="%prog version 0.2")
+	
         #-c / --custom-string
         parser.add_option("-c", "--custom-string", dest="customString", metavar="STRING", help="defines a custom SSLProtocol configuration string")
-	#TODO: currently broken, don't know why
 	
 	#-p / --custom-path
 	parser.add_option("-p", "--custom-path", dest="customPath", metavar="PATH", help="defines a custom path for apache configuration files in case you're not using distribution defaults")
@@ -52,8 +51,8 @@ if __name__ == "__main__":
         #-l / --dry-run
         parser.add_option("-l", "--dry-run", dest="listOnly", default=False, action="store_true", help="only simulates what would be done")
 	
-	#-r / ---service-restart
-	parser.add_option("-r", "--service-retart", dest="serviceRestart", default=False, action="store_true", help="restarts the affected service using the appropriate wrapper")
+	#-r / --service-restart
+	parser.add_option("-r", "--service-retart", dest="serviceRestart", default=False, action="store_true", help="restarts the affected service(s) using the appropriate wrapper")
 
         #parse arguments
         (options, args) = parser.parse_args()
@@ -115,11 +114,16 @@ if __name__ == "__main__":
 	#check _all_ the paths for vulnerable files
 	for path in default_paths:
 		if options.debug: print "DEBUG: checking path '" + str(path) + "'..."
-		command = "grep SSLProtocol " + path + " -R|grep -v 'All -SSLv2 -SSLv3'|grep -v 'All -SSLv3 -SSLv2'|cut -d: -f1"
+		command = "grep SSLProtocol " + path + " -R|grep -v 'All -SSLv2 -SSLv3'|grep -v 'All -SSLv3 -SSLv2'|cut -d: -f1|grep -v 'conf*.'"
 		if options.debug: print "DEBUG: " + command
 		hits = os.popen(command).read().split("\n")
 		hits.remove("")
 		if options.debug: print "DEBUG: hits: " + str(hits)
+		
+		if len(hits) == 0:
+			print "No configuration vulnerable to POODLE found."
+			exit(0)
+		
 		for hit in hits:
 			if options.listOnly:
 				#dry-run
