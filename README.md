@@ -4,7 +4,7 @@ poodle_protector
 ``poodle_protector.py`` is a Python script for automatically protecting your systems against POODLE vulnerability ([*CVE-2014-3566*](http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2014-3566)).
 It scans your Apache server configuration directories for unsecure configuration directives and ensures security by disabling SSL 2.0 and 3.0. It can also restart your server instantly after customizing the configuration.
 
-Currently this only works for Linux servers running Apache, the support for other affected daemons (Tomcat, vsftpd, Dovecot, Postfix, openLDAP, CUPS) is planned. The following Linux distros are detected automatically:
+Currently this only works for Linux servers running Apache, the support for other affected daemons (*Tomcat, vsftpd, Dovecot, Postfix, openLDAP, CUPS*) is planned (*see **nightly** branch*). The following Linux distros are detected automatically:
 - CentOS / Red Hat Enterprise Linux
 - openSUSE / SUSE Linux Enterprise Server
 - Debian / Ubuntu
