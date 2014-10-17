@@ -114,7 +114,7 @@ if __name__ == "__main__":
 	#check _all_ the paths for vulnerable files
 	for path in default_paths:
 		if options.debug: print "DEBUG: checking path '" + str(path) + "'..."
-		command = "grep SSLProtocol " + path + " -R|grep -v 'All -SSLv2 -SSLv3'|grep -v 'All -SSLv3 -SSLv2'|cut -d: -f1|grep -v 'conf*.'"
+		command = "grep SSLProtocol " + path + " -R|grep -v 'All -SSLv2 -SSLv3'|grep -v 'All -SSLv3 -SSLv2'|cut -d: -f1|grep -v '*conf*.*'"
 		if options.debug: print "DEBUG: " + command
 		hits = os.popen(command).read().split("\n")
 		hits.remove("")
