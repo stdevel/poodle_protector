@@ -46,7 +46,7 @@ Examples
 ========
 Just do a dry-run to see what the script would do:
 ```
-# ./poodle_protector.py -l
+# ./poodle_protector.py -lr
 I'd like to create a backup of '/etc/apache2/mods-available/ssl.conf as '/etc/apache2/mods-available/ssl.conf.20141016-1303' ...
 I'd like to insert 'SSLProtocol All -SSLv2 -SSLv3' into /etc/apache2/mods-available/ssl.conf using the following command: sed -i '/SSLProtocol/ c\SSLProtocol All -SSLv2 -SSLv3' /etc/apache2/mods-available/ssl.conf ...
 I'd also like to restart the service using: 'service apache2 restart'
