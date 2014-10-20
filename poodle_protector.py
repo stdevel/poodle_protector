@@ -68,25 +68,73 @@ if __name__ == "__main__":
 	
 	#default configurations
 	daemonStruct = namedtuple("daemonStruct", "daemonName daemonStruct")
-	configStruct = namedtuple("configStruct", "distroName configurationFiles")
+	configStruct = namedtuple("configStruct", "distroName configurationFiles serviceName filterCommand sedReplacements")
 	#
 	# - struct - daemonStruct
 	#   - string "daemonName"
 	#   - array - configStruct(s)
 	#     - string "distroName"
 	#     - array "configurationFiles"
+	#     - string "serviceName"
+	#     - string "filterCommand"
+	#     - string "sedReplacements"
 	#
 	
 	daemonConfigurations = [
 				daemonStruct(daemonName="apache", daemonStruct=[
-					configStruct("redhat", ["/etc/httpd/conf.d"]),
-					configStruct("centos", ["/etc/httpd/conf.d"]),
-					configStruct("fedora", ["/etc/httpd/conf.d"]),
-					configStruct("debian", ["/etc/apache2/mods-available","/etc/apache2/sites-available"]),
-					configStruct("ubuntu", ["/etc/apache2/mods-available","/etc/apache2/sites-available"]),
-					configStruct("suse", ["/etc/apache2/vhosts.d"]),
-					configStruct("sles", ["/etc/apache2/vhosts.d"])
-				])
+					configStruct("redhat", ["/etc/httpd/conf.d"],"httpd","REGEX","SSLProtocol All -SSLv2 -SSLv3"),
+					configStruct("centos", ["/etc/httpd/conf.d"],"httpd","REGEX","SSLProtocol All -SSLv2 -SSLv3"),
+					configStruct("fedora", ["/etc/httpd/conf.d"],"httpd","REGEX","SSLProtocol All -SSLv2 -SSLv3"),
+					configStruct("debian", ["/etc/apache2/mods-available","/etc/apache2/sites-available"],"apache2","REGEX","SSLProtocol All -SSLv2 -SSLv3"),
+					configStruct("ubuntu", ["/etc/apache2/mods-available","/etc/apache2/sites-available"],"apache2","REGEX","SSLProtocol All -SSLv2 -SSLv3"),
+					configStruct("suse", ["/etc/apache2/vhosts.d"],"apache2","REGEX","SSLProtocol All -SSLv2 -SSLv3"),
+					configStruct("sles", ["/etc/apache2/vhosts.d"],"apache2","REGEX","SSLProtocol All -SSLv2 -SSLv3")
+				]),
+				daemonStruct(daemonName="tomcat", daemonStruct=[
+					configStruct("redhat", ["/etc/tomcat6"],"tomcat6","REGEX","REPLACE"),
+					configStruct("centos", ["/etc/tomcat6"],"tomcat6","REGEX","REPLACE"),
+					configStruct("fedora", ["/etc/tomcat6"],"tomcat6","REGEX","REPLACE"),
+					configStruct("debian", ["/etc/tomcat6"],"tomcat6","REGEX","REPLACE"),
+					configStruct("ubuntu", ["/etc/tomcat6"],"tomcat6","REGEX","REPLACE"),
+					configStruct("suse", ["/etc/tomcat"],"tomcat","REGEX","REPLACE"),
+					configStruct("sles", ["/etc/tomcat"],"tomcat","REGEX","REPLACE")
+				]),
+				daemonStruct(daemonName="vsftpd", daemonStruct=[
+                                        configStruct("redhat", ["/etc/vsftpd"],"vsftpd","REGEX","REPLACE"),
+                                        configStruct("centos", ["/etc/vsftpd"],"vsftpd","REGEX","REPLACE"),
+                                        configStruct("fedora", ["/etc/vsftpd"],"vsftpd","REGEX","REPLACE"),
+                                        configStruct("debian", ["/etc/vsftpd.conf"],"vsftpd","REGEX","REPLACE"),
+                                        configStruct("ubuntu", ["/etc/vsftpd.conf"],"vsftpd","REGEX","REPLACE"),
+                                        configStruct("suse", ["/etc/vsftpd.conf"],"vsftpd","REGEX","REPLACE"),
+                                        configStruct("sles", ["/etc/vsftpd.conf"],"vsftpd","REGEX","REPLACE")
+                                ]),
+				daemonStruct(daemonName="postfix", daemonStruct=[
+                                        configStruct("redhat", ["/etc/postfix"],"postfix","REGEX","REPLACE"),
+                                        configStruct("centos", ["/etc/postfix"],"postfix","REGEX","REPLACE"),
+                                        configStruct("fedora", ["/etc/postfix"],"postfix","REGEX","REPLACE"),
+                                        configStruct("debian", ["/etc/postfix"],"postfix","REGEX","REPLACE"),
+                                        configStruct("ubuntu", ["/etc/postfix"],"postfix","REGEX","REPLACE"),
+                                        configStruct("suse", ["/etc/postfix"],"postfix","REGEX","REPLACE"),
+                                        configStruct("sles", ["/etc/postfix"],"postfix","REGEX","REPLACE")
+                                ]),
+				daemonStruct(daemonName="openldap", daemonStruct=[
+                                        configStruct("redhat", ["/etc/openldap"],"slapd","REGEX","REPLACE"),
+                                        configStruct("centos", ["/etc/openldap"],"slapd","REGEX","REPLACE"),
+                                        configStruct("fedora", ["/etc/openldap"],"slapd","REGEX","REPLACE"),
+                                        configStruct("debian", ["/etc/ldap"],"slapd","REGEX","REPLACE"),
+                                        configStruct("ubuntu", ["/etc/ldap"],"slapd","REGEX","REPLACE"),
+                                        configStruct("suse", ["/etc/openldap"],"ldap","REGEX","REPLACE"),
+                                        configStruct("sles", ["/etc/openldap"],"ldap","REGEX","REPLACE")
+                                ]),
+				daemonStruct(daemonName="cups", daemonStruct=[
+                                        configStruct("redhat", ["/etc/cups"],"cups","REGEX","REPLACE"),
+                                        configStruct("centos", ["/etc/cups"],"cups","REGEX","REPLACE"),
+                                        configStruct("fedora", ["/etc/cups"],"cups","REGEX","REPLACE"),
+                                        configStruct("debian", ["/etc/cups"],"cups","REGEX","REPLACE"),
+                                        configStruct("ubuntu", ["/etc/cups"],"cups","REGEX","REPLACE"),
+                                        configStruct("suse", ["/etc/cups"],"cups","REGEX","REPLACE"),
+                                        configStruct("sles", ["/etc/cups"],"cups","REGEX","REPLACE")
+                                ]),
 				]
 	
 	if options.debug:
@@ -95,10 +143,15 @@ if __name__ == "__main__":
 			print "daemon:",daemonName
 			for struct in configStructs:
 				#print "struct:",struct
-				for entry in struct:
-					if isinstance(entry, str): print "distro:",entry
-					else:
-						for file in entry: print "file:",file
+				#for entry in struct:
+					print "distro:",struct[0]
+					print " file[s]:",str(struct[1]).replace("[","").replace("]",",")
+					print " service name:",struct[2]
+					print " regexp:",struct[3]
+					print " replacement:",struct[4]
+					#if isinstance(entry, str): print " distro:",entry
+					#else:
+						#for file in entry: print "  file:",file
 	#STOP HERE - we're still doing struct tests
 	exit(0)
 	
